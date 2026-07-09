@@ -1,0 +1,94 @@
+apiVersion: backstage.io/v1alpha1
+kind: Group
+metadata:
+  name: platform-team
+  description: Team responsible for the Internal Developer Platform.
+spec:
+  type: team
+  profile:
+    displayName: Platform Team
+  children: []
+---
+apiVersion: backstage.io/v1alpha1
+kind: User
+metadata:
+  name: ronald
+spec:
+  profile:
+    displayName: Ronald Le Pape
+  memberOf: [platform-team]
+---
+apiVersion: backstage.io/v1alpha1
+kind: System
+metadata:
+  name: internal-developer-platform
+  title: Internal Developer Platform
+  description: Self-service platform for Kubernetes application environments.
+spec:
+  owner: platform-team
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: idp-portal
+  title: IDP Portal
+  description: Backstage-based developer portal for the Internal Developer Platform.
+spec:
+  type: website
+  lifecycle: experimental
+  owner: platform-team
+  system: internal-developer-platform
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: argocd
+  title: Argo CD
+  description: GitOps continuous delivery engine reconciling Git state into Kubernetes.
+spec:
+  type: service
+  lifecycle: experimental
+  owner: platform-team
+  system: internal-developer-platform
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: crossplane
+  title: Crossplane
+  description: Platform API engine extending Kubernetes with composite resources.
+spec:
+  type: service
+  lifecycle: experimental
+  owner: platform-team
+  system: internal-developer-platform
+---
+apiVersion: backstage.io/v1alpha1
+kind: API
+metadata:
+  name: xapp-api
+  title: XApp Platform API
+  description: Platform API used to provision standardized application environments.
+spec:
+  type: openapi
+  lifecycle: experimental
+  owner: platform-team
+  system: internal-developer-platform
+  definition: |
+    openapi: 3.0.0
+    info:
+      title: XApp Platform API
+      version: v1alpha1
+    paths: {}
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: idp-portal
+  title: IDP Portal
+  description: Backstage-based developer portal for the Internal Developer Platform Demo.
+spec:
+  type: website
+  lifecycle: experimental
+  owner: platform-team
+  system: internal-developer-platform
