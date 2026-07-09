@@ -1,0 +1,9 @@
+<svg width="260" height="64" viewBox="0 0 260 64" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Internal Developer Platform">
+  <rect width="64" height="64" rx="14" fill="#0D1B2A"></rect>
+  <path d="M18 42h28" stroke="#00B8A9" stroke-width="4" stroke-linecap="round"></path>
+  <path d="M22 32h20" stroke="#1976D2" stroke-width="4" stroke-linecap="round"></path>
+  <path d="M26 22h12" stroke="#F5F7FA" stroke-width="4" stroke-linecap="round"></path>
+  <circle cx="46" cy="18" r="5" fill="#00B8A9"></circle>
+  <text x="78" y="30" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="700" fill="#F5F7FA">Internal Developer</text>
+  <text x="78" y="50" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="700" fill="#00B8A9">Platform</text>
+</svg>
