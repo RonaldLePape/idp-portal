@@ -1,0 +1,19 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: ${{ values.name }}
+  title: ${{ values.name }}
+  description: Application provisioned through the Internal Developer Platform.
+  annotations:
+    github.com/project-slug: RonaldLePape/internal-developer-platform-demo
+  links:
+    - title: XApp manifest
+      url: https://github.com/RonaldLePape/internal-developer-platform-demo/tree/main/environments/local/workloads/${{ values.name }}
+      icon: github
+spec:
+  type: service
+  lifecycle: development
+  owner: ${{ values.owner }}
+  system: internal-developer-platform
+  dependsOn:
+    - api:xapp-api
