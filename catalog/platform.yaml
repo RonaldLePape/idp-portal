@@ -38,13 +38,16 @@ spec:
   lifecycle: experimental
   owner: platform-team
   system: internal-developer-platform
+  dependsOn:
+    - component:argocd
+    - component:crossplane
 ---
 apiVersion: backstage.io/v1alpha1
 kind: Component
 metadata:
   name: argocd
   title: Argo CD
-  description: GitOps continuous delivery engine reconciling Git state into Kubernetes.
+  description: GitOps engine used by the platform.
 spec:
   type: service
   lifecycle: experimental
@@ -56,7 +59,7 @@ kind: Component
 metadata:
   name: crossplane
   title: Crossplane
-  description: Platform API engine extending Kubernetes with composite resources.
+  description: Control plane used to implement the platform APIs.
 spec:
   type: service
   lifecycle: experimental
@@ -84,11 +87,66 @@ spec:
 apiVersion: backstage.io/v1alpha1
 kind: Component
 metadata:
-  name: idp-portal
-  title: IDP Portal
-  description: Backstage-based developer portal for the Internal Developer Platform Demo.
+  name: platform-core
+  title: Platform Core
+  description: Core platform services exposing the XApp platform API.
 spec:
-  type: website
+  type: service
+  lifecycle: production
+  owner: platform-team
+  system: internal-developer-platform
+
+  dependsOn:
+    - component:crossplane
+
+  providesApis:
+    - xapp-api
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: gitops-platform
+  title: GitOps Platform
+  description: GitOps reconciliation services.
+spec:
+  type: service
+  lifecycle: production
+  owner: platform-team
+  system: internal-developer-platform
+
+  dependsOn:
+    - component:argocd
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: observability
+  title: Observability
+  description: Monitoring and observability services.
+spec:
+  type: service
   lifecycle: experimental
   owner: platform-team
   system: internal-developer-platform
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: demo-api
+  title: Demo API
+  description: Sample application provisioned through the Internal Developer Platform.
+  annotations:
+    github.com/project-slug: RonaldLePape/internal-developer-platform-demo
+  links:
+    - title: XApp Manifest
+      url: https://github.com/RonaldLePape/internal-developer-platform-demo/tree/main/environments/local/workloads/demo-api
+      icon: github
+spec:
+  type: service
+  lifecycle: development
+
+  owner: platform-team
+  system: internal-developer-platform
+
+  dependsOn:
+    - api:xapp-api

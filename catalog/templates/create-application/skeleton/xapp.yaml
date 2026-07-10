@@ -1,0 +1,9 @@
+apiVersion: platform.ronald.dev/v1alpha1
+kind: XApp
+metadata:
+  name: ${{ values.name }}
+spec:
+  appName: ${{ values.name }}
+  namespace: ${{ values.name }}
+  environment: ${{ values.environment }}
+  owner: ${{ values.owner }}

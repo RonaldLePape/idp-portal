@@ -104,11 +104,15 @@ catalog:
     entityFilename: catalog-info.yaml
     pullRequestBranchName: backstage-integration
   rules:
-    - allow: [Group, User, Component, System, API, Resource, Location]
+    - allow: [Group, User, Component, System, API, Resource, Location, Template]
   locations:
     - type: file
       target: ../../catalog/platform.yaml
     
+    - type: file
+      target: ../../catalog/templates/create-application/template.yaml
+      rules:
+        - allow: [Template]
     #- type: file
     #  target: ../../catalog-info.yaml
     
