@@ -22,6 +22,8 @@ backend.add(
   import('@backstage/plugin-scaffolder-backend-module-notifications'),
 );
 
+backend.add(import('./modules/scaffolder/module'));
+
 // techdocs plugin
 backend.add(import('@backstage/plugin-techdocs-backend'));
 

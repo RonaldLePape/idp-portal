@@ -5,6 +5,7 @@ metadata:
   title: ${{ values.name }}
   description: Application provisioned through the Internal Developer Platform.
   annotations:
+    platform.ronald.dev/managed-by: xapp
     github.com/project-slug: RonaldLePape/internal-developer-platform-demo
   links:
     - title: XApp manifest

@@ -6,4 +6,4 @@ spec:
   appName: ${{ values.name }}
   namespace: ${{ values.name }}
   environment: ${{ values.environment }}
-  owner: ${{ values.owner }}
+  owner: ${{ values.owner | replace("group:default/", "") }}

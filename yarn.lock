@@ -13034,6 +13034,7 @@ __metadata:
     "@backstage/plugin-scaffolder-backend": "npm:^4.0.1"
     "@backstage/plugin-scaffolder-backend-module-github": "npm:^0.9.10"
     "@backstage/plugin-scaffolder-backend-module-notifications": "npm:^0.1.23"
+    "@backstage/plugin-scaffolder-node": "npm:^0.13.4"
     "@backstage/plugin-search-backend": "npm:^2.1.3"
     "@backstage/plugin-search-backend-module-catalog": "npm:^0.3.16"
     "@backstage/plugin-search-backend-module-pg": "npm:^0.5.56"
