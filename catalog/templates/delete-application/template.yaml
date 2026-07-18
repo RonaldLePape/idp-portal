@@ -1,0 +1,38 @@
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
+  name: delete-application
+  title: Delete Application
+  description: Create a GitOps pull request to deprovision an application.
+  annotations:
+    backstage.io/hidden: 'true'
+spec:
+  owner: platform-team
+  type: service
+
+  parameters:
+    - title: Application
+      required:
+        - applicationName
+      properties:
+        applicationName:
+          title: Application name
+          type: string
+          pattern: '^[a-z][a-z0-9-]*[a-z0-9]$'
+
+  steps:
+    - id: delete
+      name: Create deprovisioning pull request
+      action: platform:delete-application
+      input:
+        applicationName: ${{ parameters.applicationName }}
+
+  output:
+    text:
+      - title: Deprovisioning request created
+        content: |
+          Merge the Pull Request to remove `${{ parameters.applicationName }}`.
+
+    links:
+      - title: Review Pull Request
+        url: ${{ steps.delete.output.pullRequestUrl }}

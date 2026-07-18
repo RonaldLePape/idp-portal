@@ -127,6 +127,12 @@ catalog:
       target: ../../catalog/templates/create-application/template.yaml
       rules:
         - allow: [Template]
+
+    - type: file
+      target: ../../catalog/templates/delete-application/template.yaml
+      rules:
+        - allow: [Template]
+    
     #- type: file
     #  target: ../../catalog-info.yaml
     

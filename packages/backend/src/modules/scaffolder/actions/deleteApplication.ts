@@ -1,20 +1,206 @@
 import { createTemplateAction } from '@backstage/plugin-scaffolder-node';
 
-export const createDeleteApplicationAction = () =>
+const OWNER = 'RonaldLePape';
+const REPO = 'internal-developer-platform-demo';
+const API = 'https://api.github.com';
+
+type GitHubRequestOptions = {
+  token: string;
+  method?: string;
+  body?: unknown;
+};
+
+async function githubRequest<T>(
+  path: string,
+  options: GitHubRequestOptions,
+): Promise<T> {
+  const response = await fetch(`${API}${path}`, {
+    method: options.method ?? 'GET',
+    headers: {
+      Accept: 'application/vnd.github+json',
+      Authorization: `Bearer ${options.token}`,
+      'X-GitHub-Api-Version': '2022-11-28',
+      'Content-Type': 'application/json',
+    },
+    body: options.body ? JSON.stringify(options.body) : undefined,
+  });
+
+  if (!response.ok) {
+    const message = await response.text();
+    throw new Error(
+      `GitHub API ${response.status} ${response.statusText}: ${message}`,
+    );
+  }
+
+  return response.json() as Promise<T>;
+}
+
+export const createDeleteApplicationAction = ({
+  token,
+}: {
+  token: string;
+}) =>
   createTemplateAction({
     id: 'platform:delete-application',
-    description: 'Prepare the deletion of an IDP-managed application',
+    description:
+      'Create a GitOps pull request that deletes an IDP-managed application',
 
     schema: {
       input: {
         applicationName: z =>
-          z.string().min(1).describe('Application name to delete'),
+          z
+            .string()
+            .regex(
+              /^[a-z][a-z0-9-]*[a-z0-9]$/,
+              'Expected a lowercase Kubernetes-style application name',
+            ),
+      },
+      output: {
+        pullRequestUrl: z => z.string().url(),
+        branchName: z => z.string(),
       },
     },
 
     async handler(ctx) {
-      ctx.logger.info(
-        `Deletion requested for application: ${ctx.input.applicationName}`,
+      const applicationName = ctx.input.applicationName;
+      const branchName = `delete-${applicationName}-${Date.now()}`;
+
+      const xappPath =
+        `environments/local/workloads/${applicationName}/xapp.yaml`;
+      const catalogPath =
+        `catalog/workloads/${applicationName}/catalog-info.yaml`;
+
+      ctx.logger.info(`Preparing deletion of ${applicationName}`);
+
+      // 1. Lire le dépôt et sa branche par défaut.
+      const repository = await githubRequest<{ default_branch: string }>(
+        `/repos/${OWNER}/${REPO}`,
+        { token },
       );
+
+      const baseBranch = repository.default_branch;
+
+      const baseRef = await githubRequest<{
+        object: { sha: string };
+      }>(
+        `/repos/${OWNER}/${REPO}/git/ref/heads/${baseBranch}`,
+        { token },
+      );
+
+      const baseCommitSha = baseRef.object.sha;
+
+      const baseCommit = await githubRequest<{
+        tree: { sha: string };
+      }>(
+        `/repos/${OWNER}/${REPO}/git/commits/${baseCommitSha}`,
+        { token },
+      );
+
+      // 2. Vérifier que les deux fichiers existent.
+      for (const path of [xappPath, catalogPath]) {
+        await githubRequest(
+          `/repos/${OWNER}/${REPO}/contents/${path}?ref=${baseBranch}`,
+          { token },
+        );
+      }
+
+      // 3. Créer une branche.
+      await githubRequest(
+        `/repos/${OWNER}/${REPO}/git/refs`,
+        {
+          token,
+          method: 'POST',
+          body: {
+            ref: `refs/heads/${branchName}`,
+            sha: baseCommitSha,
+          },
+        },
+      );
+
+      // 4. Créer un tree supprimant les deux fichiers.
+      const newTree = await githubRequest<{ sha: string }>(
+        `/repos/${OWNER}/${REPO}/git/trees`,
+        {
+          token,
+          method: 'POST',
+          body: {
+            base_tree: baseCommit.tree.sha,
+            tree: [
+              {
+                path: xappPath,
+                mode: '100644',
+                type: 'blob',
+                sha: null,
+              },
+              {
+                path: catalogPath,
+                mode: '100644',
+                type: 'blob',
+                sha: null,
+              },
+            ],
+          },
+        },
+      );
+
+      // 5. Créer le commit.
+      const newCommit = await githubRequest<{ sha: string }>(
+        `/repos/${OWNER}/${REPO}/git/commits`,
+        {
+          token,
+          method: 'POST',
+          body: {
+            message: `feat(workload): deprovision ${applicationName}`,
+            tree: newTree.sha,
+            parents: [baseCommitSha],
+          },
+        },
+      );
+
+      // 6. Faire avancer la branche.
+      await githubRequest(
+        `/repos/${OWNER}/${REPO}/git/refs/heads/${branchName}`,
+        {
+          token,
+          method: 'PATCH',
+          body: {
+            sha: newCommit.sha,
+            force: false,
+          },
+        },
+      );
+
+      // 7. Ouvrir la Pull Request.
+      const pullRequest = await githubRequest<{ html_url: string }>(
+        `/repos/${OWNER}/${REPO}/pulls`,
+        {
+          token,
+          method: 'POST',
+          body: {
+            title: `feat(workload): deprovision ${applicationName}`,
+            head: branchName,
+            base: baseBranch,
+            body: [
+              '## Application deprovisioning',
+              '',
+              'Generated by the Internal Developer Platform.',
+              '',
+              `Application: \`${applicationName}\``,
+              '',
+              '### Deleted resources',
+              '',
+              `- \`${xappPath}\``,
+              `- \`${catalogPath}\``,
+              '',
+              'After merge, Argo CD will prune the XApp and Crossplane will delete its composed resources.',
+            ].join('\n'),
+          },
+        },
+      );
+
+      ctx.output('pullRequestUrl', pullRequest.html_url);
+      ctx.output('branchName', branchName);
+
+      ctx.logger.info(`Pull Request created: ${pullRequest.html_url}`);
     },
   });
